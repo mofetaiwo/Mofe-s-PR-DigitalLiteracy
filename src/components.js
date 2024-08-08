@@ -12,7 +12,7 @@ import FinanceAndManagement from './pages/FinancaAndManagement';
 import ForgotPassword from './pages/ForgotPassword';
 import AddVideos from './pages/AddVideos';
 import RestoreVideos from './pages/RestoreVideos';
-import EditVideos from './pages/EditVideos';
+import UpdateVideo from './pages/UpdateVideo';
 import HelpManager from './pages/HelpManager';
 import Quiz from './pages/Quiz';
 import Help from './pages/QuestionsPage';
@@ -37,7 +37,7 @@ const components = {
 	generateResume: PDFPage,
 	addVideos: AddVideos,
 	restoreVideos: RestoreVideos,
-	editVideos: EditVideos,
+	updateVideo: UpdateVideo,
 	helpManager: HelpManager,
 	faq: FAQ,
 };

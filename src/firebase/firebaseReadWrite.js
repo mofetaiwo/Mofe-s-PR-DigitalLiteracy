@@ -1,9 +1,21 @@
-import { updateDoc, onSnapshot, setDoc, collection, addDoc, getDocs, where, query } from 'firebase/firestore';
+import {
+	updateDoc,
+	onSnapshot,
+	setDoc,
+	collection,
+	addDoc,
+	getDocs,
+	where,
+	query,
+	doc,
+	getDoc,
+} from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 
 import { db } from './firebase';
 
 const videoCollectionName = 'youtube-videos';
+const transcriptCollectionName = 'youtube-transcripts';
 
 export const addData = async (docRef, docData) => {
 	console.log('docRef:', docRef);
@@ -52,6 +64,39 @@ export const fetchVideosFromFirebase = () => {
 	}, []);
 
 	return videos;
+};
+
+export const fetchVideoFromFirebase = (docID) => {
+	const [video, setVideo] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
+
+	useEffect(() => {
+		const fetchVideo = async () => {
+			try {
+				const docRef = doc(db, videoCollectionName, docID);
+				const unsubscribe = onSnapshot(docRef, (docSnap) => {
+					if (docSnap.exists()) {
+						setVideo(docSnap.data());
+					} else {
+						console.warn('No video found with the given document ID.');
+						setError('Video not found');
+					}
+					setLoading(false);
+				});
+
+				return () => unsubscribe(); // Cleanup on unmount
+			} catch (err) {
+				console.error('Error fetching video:', err);
+				setError(err.message); // Store the error message
+				setLoading(false); // Set loading to false on error
+			}
+		};
+
+		fetchVideo();
+	}, [docID]); // Include d
+
+	return { video, error, loading };
 };
 
 // Get unique topics
@@ -119,4 +164,22 @@ export const fetchTopicsAndSubtopics = () => {
 	}, []);
 
 	return subtopicGroups;
+};
+
+export const fetchTrancriptsFromFirebase = () => {
+	const [transcripts, setTranscripts] = useState([]);
+
+	useEffect(() => {
+		const unsubscribe = onSnapshot(collection(db, transcriptCollectionName), (snapshot) => {
+			const transcriptData = snapshot.docs.map((document) => ({
+				...document.data(),
+				key: document.id,
+			}));
+			setTranscripts(transcriptData);
+		});
+
+		return unsubscribe;
+	}, []);
+
+	return transcripts;
 };

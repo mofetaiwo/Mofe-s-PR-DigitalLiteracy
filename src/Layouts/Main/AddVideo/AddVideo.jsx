@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { addVideoData } from '../../../firebase/firebaseReadWrite';
+import PropTypes from 'prop-types';
+import { addVideoData, updateData } from '../../../firebase/firebaseReadWrite';
 import './styles.css';
 import Popup from './Components/Popups';
 
@@ -8,23 +9,17 @@ import SubmitButton from './Components/SubmitButton';
 import VideoSection from './Layouts/VideoSection';
 import VideoInputSection from './Layouts/VideoInputSection';
 
-function AddVideo() {
+function AddVideo({ videoData }) {
 	// Database Values
-	const [url, setUrl] = useState('');
-	const [tags, setTags] = useState([]);
-	const [operatingSystem, setOs] = useState('');
-	const [category, setCategory] = useState('');
-	const [subtopic, setSubtopic] = useState('');
-	const [messages, setMessage] = useState([
-		{
-			messages: '',
-		},
-	]);
-	const [stopTimes, setStopTimes] = useState([
-		{
-			stopTimes: '',
-		},
-	]);
+	const [url, setUrl] = useState(videoData?.url || '');
+	const [tags, setTags] = useState(videoData?.tags || []);
+	const [operatingSystem, setOs] = useState(videoData?.operating_system || '');
+
+	const [category, setCategory] = useState(videoData?.category || '');
+	const [subtopic, setSubtopic] = useState(videoData?.subtopic || '');
+
+	const [messages, setMessage] = useState(videoData?.messages || ['']);
+	const [stopTimes, setStopTimes] = useState(videoData?.stopTimes || ['']);
 
 	// React-Player
 	const playerRef = useRef();
@@ -35,6 +30,9 @@ function AddVideo() {
 	const handleChaperCheckboxChange = () => {
 		setIsChapterSegChecked(!isChapterSegChecked);
 	};
+
+	// This a temp array for the users input stop times
+	const [userInputStopTimes, setUserInputStopTimes] = useState(['']);
 
 	// It's simpler to fetch all the chapters when we check if they are available
 	const [chapterMessages, setChapterMessage] = useState([
@@ -50,6 +48,47 @@ function AddVideo() {
 
 	// popup message
 	const [popup, setPopup] = useState(null);
+
+	// transcript data
+	const [transcriptData, setTranscriptData] = useState([]);
+	const [title, setTitle] = useState([]);
+	const [channelTitle, setChannelTitle] = useState([]);
+
+	/*
+	const youtube = google.youtube('v3');
+
+	async function getTranscript(videoId) {
+		try {
+			const res = await youtube.captions.list({
+				part: 'snippet',
+				videoId,
+				key: process.env.REACT_APP_YOUTUBE_API_KEY,
+			});
+
+			// Find the English caption track (or your preferred language)
+			const englishCaption = res.data.items.find((caption) => caption.snippet.language === 'en');
+
+			if (!englishCaption) {
+				throw new Error('English captions not found');
+			}
+
+			// Fetch the actual transcript content
+			const transcriptRes = await youtube.captions.download(
+				{
+					id: englishCaption.id,
+					tfmt: 'srt', // Choose your preferred format (srt, vtt, etc.)
+					key: process.env.REACT_APP_YOUTUBE_API_KEY,
+				},
+				{ responseType: 'text' },
+			);
+
+			// Process the transcriptRes (e.g., parse SRT format)
+			console.log(transcriptRes);
+		} catch (error) {
+			console.error('Error fetching transcript:', error);
+		}
+	}
+	*/
 
 	// whenever there is a new URL, fetch the chapters if it's a valid URL
 	useEffect(() => {
@@ -89,15 +128,25 @@ function AddVideo() {
 				if (filteredLines.length > 0) {
 					setIsChapterSegAvailable(true);
 
+					console.log('filteredLines', filteredLines);
 					const updatedStopTimes = filteredLines.map((line) => convertToSeconds(line.split(' ')[0]));
+
+					// removes the first index of the array
 					updatedStopTimes.shift();
-					const updatedMessages = filteredLines.map(() => 'Are you following along so far?');
+					const updatedMessages = Array.from(
+						{ length: updatedStopTimes.length },
+						() => 'Are you following along so far?',
+					);
 
 					setChapterStopTimes(updatedStopTimes);
 					setChapterMessage(updatedMessages);
+					setChannelTitle(video.channelTitle);
+					setTitle(video.title);
 				} else {
 					setIsChapterSegAvailable(false);
 				}
+
+				// getTranscript(match[1]);
 			} catch (error) {
 				console.log(error);
 				alert(error);
@@ -138,8 +187,9 @@ function AddVideo() {
 				setOs('');
 				setCategory('');
 				setSubtopic('');
-				setStopTimes([{ stopTimes: '' }]);
-				setMessage([{ message: '' }]);
+				setStopTimes(['']);
+				setMessage(['']);
+				setUserInputStopTimes(['']);
 				// set checked to false
 				setIsChapterSegChecked(false);
 				setIsChapterSegAvailable(false);
@@ -168,23 +218,38 @@ function AddVideo() {
 			const urlRegex = /^(https?:\/\/)/i;
 
 			try {
-				await addVideoData('youtube-videos', {
-					url,
-					tags,
-					operating_system: operatingSystem,
-					category,
-					subtopic,
-					stopTimes,
-					messages,
-				});
+				// if videoData is not null then I want to change the button to update
+				if (videoData) {
+					await updateData('youtube-videos', {
+						url,
+						tags,
+						operating_system: operatingSystem,
+						category,
+						subtopic,
+						stopTimes: stopTimes.map((stopTime) => stopTime.stopTimes),
+						messages,
+						key: videoData.key,
+					});
+				} else {
+					await addVideoData('youtube-videos', {
+						url,
+						tags,
+						operating_system: operatingSystem,
+						category,
+						subtopic,
+						stopTimes: stopTimes.map((stopTime) => stopTime.stopTimes),
+						messages,
+					});
+				}
 
 				setUrl('');
 				setTags([]);
 				setOs('');
 				setCategory('');
 				setSubtopic('');
-				setStopTimes([{ stopTimes: '' }]);
-				setMessage([{ message: '' }]);
+				setStopTimes(['']);
+				setMessage(['']);
+				setUserInputStopTimes(['']);
 
 				setIsChapterSegChecked(false);
 				setIsChapterSegAvailable(false);
@@ -404,8 +469,8 @@ function AddVideo() {
 	};
 
 	const handleChange = (index, event) => {
-		console.log('index: ', index);
-		console.log('event: ', event.target.value);
+		// console.log('index: ', index);
+		// console.log('event: ', event.target.value);
 		const stopTime = [...stopTimes];
 		const message = [...messages];
 		if (event.target.name === 'stopTimes') {
@@ -415,10 +480,11 @@ function AddVideo() {
 			message[index] = event.target.value;
 			// alert("message is: " + message + "\nIndex is: " + index);
 		}
-		console.log('stopTime: ', stopTime);
-		console.log('message: ', message);
+		// console.log('stopTime: ', stopTime);
+		// console.log('message: ', message);
 		setStopTimes(stopTime);
 		setMessage(message);
+		console.log('TEST: ', stopTime);
 	};
 
 	return (
@@ -452,9 +518,15 @@ function AddVideo() {
 					handleClickTime={handleClickTime}
 					remove={remove}
 					handleChaperCheckboxChange={handleChaperCheckboxChange}
+					userInputStopTimes={userInputStopTimes}
+					setUserInputStopTimes={setUserInputStopTimes}
 				/>
 
-				<SubmitButton handleSubmit={handleSubmit} />
+				{videoData ? (
+					<SubmitButton handleSubmit={handleSubmit} submitText="Update" />
+				) : (
+					<SubmitButton handleSubmit={handleSubmit} submitText="Submit" />
+				)}
 			</section>
 			{popup && popup.visible && (
 				<Popup title={popup.title} icon={popup.icon} handleClose={() => setPopup(null)} text={popup.text} />
@@ -464,3 +536,19 @@ function AddVideo() {
 }
 
 export default AddVideo;
+
+AddVideo.propTypes = {
+	videoData: PropTypes.shape({
+		url: PropTypes.string,
+		tags: PropTypes.arrayOf(PropTypes.string),
+		operating_system: PropTypes.string,
+		category: PropTypes.string,
+		subtopic: PropTypes.string,
+		messages: PropTypes.arrayOf(PropTypes.string),
+		stopTimes: PropTypes.arrayOf(PropTypes.number),
+	}),
+};
+
+AddVideo.defaultProps = {
+	videoData: null,
+};

@@ -21,14 +21,20 @@ export default function VideoInputSection({
 	const subtopics = fetchTopicsAndSubtopics();
 	const [displaySubtopics, setDisplayedSubtopics] = useState([]);
 
+	console.log('category:', category);
 	useEffect(() => {
-		if (category) {
-			const relevantSubtopics = subtopics.find((item) => item[0].toLowerCase() === category.toLowerCase())?.[1] || [];
+		if (category && subtopics) {
+			// Check if subtopics is not null
+			const relevantSubtopics = subtopics.find((item) => item[0]?.toLowerCase() === category.toLowerCase())?.[1] ?? []; // Use optional chaining and nullish coalescing
+
 			setDisplayedSubtopics(relevantSubtopics);
 
-			setSubtopic('');
+			// Reset subtopic only if it's not in the new list of relevantSubtopics
+			if (!relevantSubtopics.includes(subtopic)) {
+				setSubtopic('');
+			}
 		}
-	}, [category]);
+	}, [category, subtopics]);
 
 	return (
 		<div className="bg-backgroundColor shadow-md rounded-xl py-12 px-12">
@@ -106,21 +112,22 @@ export default function VideoInputSection({
 					]}
 				/>
 
-				{category && subtopics.length > 0 && (
-					<DropdownInputField
-						headerText="Subtopic:"
-						inputLabel="Select a subtopic"
-						value={subtopic}
-						onChangeFunction={setSubtopic}
-						MenuItems={[
-							displaySubtopics.map((subtopicVal, index) => (
-								<MenuItem key={index} value={subtopicVal}>
-									{subtopicVal}
-								</MenuItem>
-							)),
-						]}
-					/>
-				)}
+				{category &&
+					subtopics?.length > 0 && ( // Check if subtopics is not null
+						<DropdownInputField
+							headerText="Subtopic:"
+							inputLabel="Select a subtopic"
+							value={subtopic}
+							onChangeFunction={setSubtopic}
+							MenuItems={[
+								displaySubtopics.map((subtopicVal, index) => (
+									<MenuItem key={index} value={subtopicVal}>
+										{subtopicVal}
+									</MenuItem>
+								)),
+							]}
+						/>
+					)}
 			</div>
 		</div>
 	);

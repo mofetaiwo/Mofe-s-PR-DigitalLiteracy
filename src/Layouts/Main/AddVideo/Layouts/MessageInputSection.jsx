@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Checkbox, FormControlLabel } from '@mui/material';
 import PropTypes from 'prop-types';
 import InputField, { TextInputField } from '../Components/InputFields';
@@ -8,11 +8,34 @@ export default function MessageInputSection({
 	isChapterSegAvailable,
 	isChapterSegChecked,
 	messages,
+	stopTimes,
 	handleChange,
 	remove,
 	handleClickTime,
 	handleChaperCheckboxChange,
+	userInputStopTimes,
+	setUserInputStopTimes,
 }) {
+	// This useEffect is used to format the stop times passed in video Edit from seconds to minutes and seconds
+	useEffect(() => {
+		const formattedArray = stopTimes?.map((time) => {
+			const minutes = Math.floor(time / 60);
+			const remainingSeconds = time % 60;
+
+			return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+		});
+
+		setUserInputStopTimes(formattedArray);
+	}, []);
+
+	// Every User Input is stored in the state and then passed to the parent component for conversion if it's valid. If the input is NOT valid, the parent component will store it as NAN that gets validated. Ideally, we only want to check if the input is valid when the user clicks off the input field. This would be good practice to avoid unnecessary re-renders.
+	const handleStopTimeChange = (index, event) => {
+		const newStopTimes = [...userInputStopTimes];
+		newStopTimes[index] = event.target.value;
+		setUserInputStopTimes(newStopTimes);
+		handleChange(index, event);
+	};
+
 	const messageInput = messages.map((input, index) => (
 		<div key={messages.length - index - 1} className="flex flex-col gap-6">
 			<div className="flex justify-between items-center">
@@ -33,9 +56,9 @@ export default function MessageInputSection({
 					<InputField
 						headerText="Stop Times:"
 						placeHolder="Specify pause times for video in format min:sec, e.g. 0:30"
-						value={input.stopTime}
+						value={userInputStopTimes[messages.length - index - 1]}
 						eventName="stopTimes"
-						onChangeFunction={handleChange}
+						onChangeFunction={handleStopTimeChange}
 						id={{
 							value: messages.length - index - 1,
 							tag: 'stopTimeTextField_',
@@ -56,7 +79,7 @@ export default function MessageInputSection({
 			<div className="flex flex-col gap-2">
 				<div className="text-primaryColor font-semibold font-sans">Confirmation Message:</div>
 				<TextInputField
-					value={input.messages}
+					value={messages[messages.length - index - 1]}
 					id={{
 						value: messages.length - index - 1,
 						tag: 'confirmationTextField_',
@@ -99,8 +122,11 @@ MessageInputSection.propTypes = {
 	isChapterSegAvailable: PropTypes.bool.isRequired,
 	isChapterSegChecked: PropTypes.bool.isRequired,
 	messages: PropTypes.arrayOf(PropTypes.string).isRequired,
+	stopTimes: PropTypes.arrayOf(PropTypes.number).isRequired,
 	handleChange: PropTypes.func.isRequired,
 	remove: PropTypes.func.isRequired,
 	handleClickTime: PropTypes.func.isRequired,
 	handleChaperCheckboxChange: PropTypes.func.isRequired,
+	userInputStopTimes: PropTypes.arrayOf(PropTypes.string).isRequired,
+	setUserInputStopTimes: PropTypes.func.isRequired,
 };

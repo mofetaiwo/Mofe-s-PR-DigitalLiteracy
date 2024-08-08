@@ -3,11 +3,11 @@ import { Button } from '@mui/material';
 import PropTypes from 'prop-types';
 import { Colors } from '../../../../constants/Colors';
 
-export default function SubmitButton({ handleSubmit }) {
+export default function SubmitButton({ handleSubmit, submitText }) {
 	return (
 		<div>
 			<Button variant="contained" onClick={handleSubmit} sx={{ bgcolor: Colors.primaryColor }}>
-				Submit
+				{submitText}
 			</Button>
 		</div>
 	);
@@ -15,4 +15,5 @@ export default function SubmitButton({ handleSubmit }) {
 
 SubmitButton.propTypes = {
 	handleSubmit: PropTypes.func.isRequired,
+	submitText: PropTypes.string.isRequired,
 };

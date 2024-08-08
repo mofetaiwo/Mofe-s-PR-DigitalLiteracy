@@ -6,7 +6,11 @@ import FilterPanel from '../../../components/FilterPanel';
 import SearchBar from '../../../components/Video/Searchbar';
 import SubtopicSelection from '../../../components/Video/SubtopicSelection';
 import VideoSection from '../../../components/Video/VideoSection';
-import { fetchVideosFromFirebase, fetchTopicsAndSubtopics } from '../../../firebase/firebaseReadWrite';
+import {
+	fetchVideosFromFirebase,
+	fetchTopicsAndSubtopics,
+	fetchTrancriptsFromFirebase,
+} from '../../../firebase/firebaseReadWrite';
 import Intro from '../../../components/Video/Intro';
 import { FILTERGROUPS } from './constants';
 
@@ -26,6 +30,7 @@ function TechVideos({ initialPageContent, introText }) {
 
 	// video database values
 	const videoValue = fetchVideosFromFirebase();
+	const transcriptValue = fetchTrancriptsFromFirebase();
 	console.log('videoValue:', videoValue);
 
 	// video search constants
@@ -93,6 +98,7 @@ function TechVideos({ initialPageContent, introText }) {
 					<div className="flex justify-center">
 						<VideoSection
 							videoValue={videoValue}
+							transcriptValue={transcriptValue}
 							subtopicValue={subtopicValue}
 							tags={tags}
 							appliedFilterTags={appliedFilterTags}
