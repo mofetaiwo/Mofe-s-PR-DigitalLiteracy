@@ -19,6 +19,7 @@ const PATHS = {
 	restoreVideos: '/restoreVideos',
 	editVideos: '/editVideos',
 	helpManager: '/helpManager',
+	faq: '/faq',
 };
 
 export default PATHS;

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 import Swal from 'sweetalert2';
 
 export default function ErrorSuccessPopup({ text, title, icon, handleClose }) {
@@ -9,17 +9,15 @@ export default function ErrorSuccessPopup({ text, title, icon, handleClose }) {
 			title,
 			icon,
 			showCloseButton: true, // Keep this for the close button (X)
-        }).then((result) => { 
-            if (result.isConfirmed || result.dismiss === Swal.DismissReason.close) {
-                handleClose(); 
-            }
-        });
+		}).then((result) => {
+			if (result.isConfirmed || result.dismiss === Swal.DismissReason.close) {
+				handleClose();
+			}
+		});
 	}, [text, title, icon]);
 
 	return null; // Assuming this component does not render anything itself
 }
-
-
 
 /*
 import ErrorSuccessPopup from './Popups/Popups';
