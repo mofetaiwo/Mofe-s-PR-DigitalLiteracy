@@ -18,6 +18,7 @@ import Quiz from './pages/Quiz';
 import Help from './pages/QuestionsPage';
 import QuestionDisplay from './Layouts/Main/FAQ/QuestionDisplay/index';
 import FAQ from './pages/FAQ';
+import NewComputer from './pages/NewComputer';
 
 const components = {
 	home: Home,
@@ -40,6 +41,7 @@ const components = {
 	updateVideo: UpdateVideo,
 	helpManager: HelpManager,
 	faq: FAQ,
+	newComputer: NewComputer,
 };
 
 export default components;

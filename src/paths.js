@@ -19,6 +19,7 @@ const PATHS = {
 	updateVideo: '/updateVideo/:videoId',
 	helpManager: '/helpManager',
 	faq: '/faq',
+	newComputer: '/newComputer',
 };
 
 export default PATHS;
